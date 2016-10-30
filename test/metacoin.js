@@ -1,55 +1,48 @@
-contract('MetaCoin', function(accounts) {
-  it("should put 10000 MetaCoin in the first account", function() {
-    var meta = MetaCoin.deployed();
 
-    return meta.getBalance.call(accounts[0]).then(function(balance) {
-      assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
-    });
-  });
-  it("should call a function that depends on a linked library", function() {
-    var meta = MetaCoin.deployed();
-    var metaCoinBalance;
-    var metaCoinEthBalance;
+// Assignments
+// there are 2 main external accounts: A and B
+// we can see the balance of the contract on the web page
+// whenever someone sends ether to it, half of it goes to account A and the other half to account B
+// we can see the balances of A and B on the web page
+// we can send ether to it from the web page
+// It would be even better if you could team up with different people impersonating A, B and the ether sender, all cooperating on the B9Lab blockchain.
 
-    return meta.getBalance.call(accounts[0]).then(function(outCoinBalance) {
-      metaCoinBalance = outCoinBalance.toNumber();
-      return meta.getBalanceInEth.call(accounts[0]);
-    }).then(function(outCoinBalanceEth) {
-      metaCoinEthBalance = outCoinBalanceEth.toNumber();
-    }).then(function() {
-      assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpeced function, linkage may be broken");
-    });
-  });
-  it("should send coin correctly", function() {
-    var meta = MetaCoin.deployed();
+function floatFormat( number, n ) {
+	var _pow = Math.pow( 10 , n ) ;
 
-    // Get initial balances of first and second account.
-    var account_one = accounts[0];
-    var account_two = accounts[1];
+	return Math.round( number * _pow ) / _pow ;
+}
 
-    var account_one_starting_balance;
-    var account_two_starting_balance;
-    var account_one_ending_balance;
-    var account_two_ending_balance;
+function getDiff(before, after){
+  diff = after - before;
+  return floatFormat(web3.fromWei(diff.toString(), "ether"), 1);
+}
 
-    var amount = 10;
-
-    return meta.getBalance.call(account_one).then(function(balance) {
-      account_one_starting_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_starting_balance = balance.toNumber();
-      return meta.sendCoin(account_two, amount, {from: account_one});
-    }).then(function() {
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_ending_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_ending_balance = balance.toNumber();
-
-      assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-      assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
-    });
+contract('Splitter', function(accounts) {
+  it("splits to half", function(done) {
+    var splitter;
+    var sender = accounts[1];
+    var receiver_A = accounts[2];
+    var receiver_B = accounts[3];
+    var ether = 1e18;
+    var money = ether * 10; // 10 Ether
+    var gas = 21000;
+    var balances = {}
+    Splitter.new(receiver_A, receiver_B).
+      then(function(_s) {
+        splitter = _s;
+        balances.sender = web3.eth.getBalance(sender);
+        balances.receiver_A = web3.eth.getBalance(receiver_A);
+        balances.receiver_B = web3.eth.getBalance(receiver_B);
+        return splitter.split({from:sender, value:money})
+      }).
+      then(function() {
+        var senderDiff =    getDiff(balances.sender, web3.eth.getBalance(sender));
+        var receiverADiff = getDiff(balances.receiver_A, web3.eth.getBalance(receiver_A));
+        var receiverBDiff = getDiff(balances.receiver_B, web3.eth.getBalance(receiver_B));
+        assert.equal(senderDiff, -10);
+        assert.equal(receiverADiff, 5);
+        assert.equal(receiverBDiff, 5);
+      }).then(done);
   });
 });
