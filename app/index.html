@@ -4,18 +4,26 @@
   <title>MetaCoin - Default Truffle App</title>
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
   <link href="./app.css" rel='stylesheet' type='text/css'>
+  <script
+  src="https://code.jquery.com/jquery-3.1.1.min.js"
+  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+  crossorigin="anonymous"></script>
   <script src="./app.js"></script>
 </head>
 <body>
-  <h1>MetaCoin</h1>
-  <h2>Example Truffle Dapp</h2>
-  <h3>You have <span class="black"><span id="balance"></span> META</span></h3>
+  <h1>Splitter</h1>
+  <h2>Account balances</h2>
+  <ul>
+    <li>Contract: <span id="contract-balance">1</span></li>
+    <li>Sender:   <span id="sender">1</span></li>
+    <li>Account A: <span id="account-a">2</span></li>
+    <li>Account B: <span id="account-b">3</span></li>
+  </ul>
 
   <br>
   <h1>Send</h1>
   <br><label for="amount">Amount:</label><input type="text" id="amount" placeholder="e.g., 95"></input>
-  <br><label for="receiver">To Address:</label><input type="text" id="receiver" placeholder="e.g., 0x93e66d9baea28c17d9fc393b53e3fbdd76899dae"></input>
-  <br><br><button id="send" onclick="sendCoin()">Send MetaCoin</button>
+  <br><br><button id="send" onclick="split()">Split</button>
   <br><br>
   <span id="status"></span>
 </body>

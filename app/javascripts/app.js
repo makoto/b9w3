@@ -1,36 +1,25 @@
 var accounts;
-var account;
+var sender;
+var account_a;
+var account_b;
+var contract;
 
 function setStatus(message) {
   var status = document.getElementById("status");
   status.innerHTML = message;
 };
 
-function refreshBalance() {
-  var meta = MetaCoin.deployed();
+function refresh(){
+  $('#contract-balance').text(web3.eth.getBalance(contract.address))
+  $('#sender').text(web3.eth.getBalance(sender))
+  $('#account-a').text(web3.eth.getBalance(account_a))
+  $('#account-b').text(web3.eth.getBalance(account_b))
+}
 
-  meta.getBalance.call(account, {from: account}).then(function(value) {
-    var balance_element = document.getElementById("balance");
-    balance_element.innerHTML = value.valueOf();
+function split() {
+  contract.split({from: sender, value:parseInt(amount.value)}).then(function() {
+    refresh();
   }).catch(function(e) {
-    console.log(e);
-    setStatus("Error getting balance; see log.");
-  });
-};
-
-function sendCoin() {
-  var meta = MetaCoin.deployed();
-
-  var amount = parseInt(document.getElementById("amount").value);
-  var receiver = document.getElementById("receiver").value;
-
-  setStatus("Initiating transaction... (please wait)");
-
-  meta.sendCoin(receiver, amount, {from: account}).then(function() {
-    setStatus("Transaction complete!");
-    refreshBalance();
-  }).catch(function(e) {
-    console.log(e);
     setStatus("Error sending coin; see log.");
   });
 };
@@ -48,8 +37,11 @@ window.onload = function() {
     }
 
     accounts = accs;
-    account = accounts[0];
+    sender = accounts[0];
+    account_a = web3.eth.accounts[1];
+    account_b = web3.eth.accounts[2];
+    contract = Splitter.deployed()
 
-    refreshBalance();
+    refresh()
   });
 }
